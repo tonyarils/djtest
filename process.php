@@ -202,7 +202,7 @@ function create_db_connection(string $dbType, string $host, string $port, string
         if (in_array($dbTypeNorm, ['dm', 'dameng'], true)) {
             $dsn = "dm:host={$host};port={$port};dbname={$serv}";
         } elseif (in_array($dbTypeNorm, ['kingbase', '人大金仓'], true)) {
-            $dsn = "pgsql:host={$host};port={$port};dbname={$serv}";
+            $dsn = "kdb:host={$host};port={$port};dbname={$serv}";
         } elseif ($dbTypeNorm === 'oceanbase') {
             // OceanBase MySQL协议优先
             $dsn = "mysql:host={$host};port={$port};dbname={$serv};charset=utf8";

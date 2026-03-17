@@ -47,11 +47,16 @@ COPY dmclient /opt/dmclient
 RUN ln -s /opt/dmclient/php84ts_pdo_dm.so /usr/lib/php84ts_pdo_dm.so || true
 # 编译 pecl pdo_dm 如果可用
 RUN if pecl install pdo_dm; then docker-php-ext-enable pdo_dm; fi || true
+COPY kdbclient /opt/kdbclient
+RUN ln -s /opt/kdbclient/pdo_kdb.so /usr/lib/php84ts_pdo_kdb.so || true
+# 编译 pecl pdo_kdb 如果可用
+RUN if pecl install pdo_kdb; then docker-php-ext-enable pdo_kdb; fi || true
 # httpd 配置：允许 .htaccess 等
 RUN sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 RUN echo "extension=pdo_mysql" > /usr/local/etc/php/conf.d/30-pdo_mysql.ini
 RUN echo "extension=pdo_pgsql" > /usr/local/etc/php/conf.d/30-pdo_pgsql.ini
 RUN echo "extension=pdo_dm" > /usr/local/etc/php/conf.d/30-pdo_dm.ini
+RUN echo "extension=pdo_kdb" > /usr/local/etc/php/conf.d/30-pdo_kdb.ini
 
 # Copy application files
 COPY . /var/www/html/
