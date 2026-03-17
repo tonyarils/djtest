@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  php-app:
+    build: .
+    container_name: djtest_php
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    environment:
+      - PHP_OPCACHE_VALIDATE_TIMESTAMPS=1
+    restart: unless-stopped

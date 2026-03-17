@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <title>Oracle 批量执行</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+      .spinner { display:none; margin-top:8px; }
+      .spinner:after { content: ' '; display:inline-block; width:18px; height:18px; border:3px solid #ccc; border-top-color:#333; border-radius:50%; animation:spin 0.9s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg);} }
+      #filename { font-weight:normal; color:#333; margin-left:8px; }
+    </style>
+  </head>
+  <body>
+    <h2>上传 Excel 并执行 SQL</h2>
+    <p>Excel 必须包含列: <strong>host</strong>, <strong>servicename</strong>, <strong>port</strong>。可选列: <strong>username</strong>, <strong>password</strong>（覆盖表单的凭据）。</p>
+    <p class="note">提交后页面将自动显示处理进度及当前正在连接的数据库（若浏览器支持，会轮询后台状态文件）。处理完成后会自动触发结果文件下载。</p>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+        {% for m in messages %}
+          <li>{{ m }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form action="/run" method="post" enctype="multipart/form-data">
+      <div>
+        <label>Excel 文件: <input id="excelFile" type="file" name="excel" accept=".xls,.xlsx" required></label>
+        <span id="filename"></span>
+      </div>
+      <div>
+        <label>默认用户名: <input type="text" name="username"></label>
+      </div>
+      <div>
+        <label>默认密码: <input type="password" name="password"></label>
+      </div>
+      <div>
+        <fieldset style="border:1px solid #ddd; padding:8px; margin-bottom:8px;">
+          <legend style="font-weight:600;">执行配置（可选）</legend>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <label>单条最大返回行数: <input type="number" name="cfg_max_result_rows" value="100" min="1" style="width:100px"></label>
+            <label>单条超时(秒): <input type="number" name="cfg_max_execution_time" value="30" min="1" style="width:100px"></label>
+            <label>总超时(秒): <input type="number" name="cfg_max_total_time" value="300" min="1" style="width:100px"></label>
+            <label>最大行数: <input type="number" name="cfg_max_rows" value="1000" min="1" style="width:100px"></label>
+            <label style="align-items:center; display:flex; gap:6px;"><input type="checkbox" name="cfg_enable_log" value="1"> 启用日志</label>
+          </div>
+        </fieldset>
+      </div>
+      <div>
+        <label><input type="checkbox" name="mock" value="1"> 模拟模式（仅用于测试，不连接 Oracle）</label>
+      </div>
+      <div>
+        <label>SQL 脚本（可为 SELECT 或其它语句）:</label><br>
+        <textarea name="sql" rows="10" cols="80" required></textarea>
+      </div>
+      <div>
+        <button id="submitBtn" type="submit">执行并下载结果</button>
+        <div class="spinner" id="loading"></div>
+      </div>
+    </form>
+    <p>示例模板： <a href="/template.xlsx" download>下载 template.xlsx</a></p>
+
+    <script>
+      $(function(){
+        $('#excelFile').on('change', function(){
+          var f = this.files && this.files[0];
+          $('#filename').text(f ? f.name : '');
+        });
+
+        $('form').on('submit', function(e){
+          var f = $('#excelFile')[0].files.length;
+          var sql = $.trim($('textarea[name="sql"]').val());
+          if(!f){ alert('请选择 Excel 文件'); e.preventDefault(); return false; }
+          if(!sql){ alert('请提供要执行的 SQL 脚本'); e.preventDefault(); return false; }
+          $('#submitBtn').prop('disabled', true);
+          $('#loading').show();
+        });
+      });
+    </script>
+  </body>
+</html>
