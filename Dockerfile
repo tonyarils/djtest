@@ -1,17 +1,17 @@
-FROM php:8.4
+FROM php:8.4-apache
 
 ENV ORACLE_INSTANTCLIENT_DIR=/opt/oracle/instantclient_21_21
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-    unzip libaio1t64 libzip-dev zlib1g-dev zip git curl build-essential libaio-dev libjpeg62-turbo-dev \
+    unzip libaio1t64 libzip-dev zlib1g-dev zip git curl build-essential libaio-dev libjpeg62-turbo-dev libssl-dev \
     libpng-dev libfreetype6-dev wget libzip-dev git libpq-dev default-libmysqlclient-dev \
     libxml2 libxml2-dev apache2 \
     && rm -rf /var/lib/apt/lists/* \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd \
     && docker-php-ext-install zip \
-    && docker-php-ext-install pdo pdo_mysql pdo_pgsql mysqli zip \
+    && docker-php-ext-install pdo pdo_mysql pdo_pgsql mysqli pgsql\
     && a2enmod rewrite
 RUN ln -s /lib/x86_64-linux-gnu/libaio.so.1t64 /lib/x86_64-linux-gnu/libaio.so.1
 # Place Oracle Instant Client zip files in ./docker/ as:
@@ -44,19 +44,20 @@ RUN if [ -d /opt/oracle/instantclient ] || [ -d /opt/oracle/instantclient_21_21 
 # 这里假设你已经把 dm 的 rpm/so 拷贝到 build 目录
 # 如果没有正式 driver，注释以下两行
 COPY dmclient /opt/dmclient
-RUN ln -s /opt/dmclient/php84ts_pdo_dm.so /usr/lib/php84ts_pdo_dm.so || true
+RUN ln -s /opt/dmclient/php84_pdo_dm.so /usr/local/lib/php/extensions/no-debug-non-zts-20240924/php84_pdo_dm.so || true
+RUN ln -s /opt/dmclient/libphp84_pdo_dm.so /usr/local/lib/php/extensions/no-debug-non-zts-20240924/libphp84_pdo_dm.so || true
 # 编译 pecl pdo_dm 如果可用
-RUN if pecl install pdo_dm; then docker-php-ext-enable pdo_dm; fi || true
 COPY kdbclient /opt/kdbclient
-RUN ln -s /opt/kdbclient/pdo_kdb.so /usr/lib/php84ts_pdo_kdb.so || true
+RUN ln -s /opt/kdbclient/pdo_kdb.so /usr/local/lib/php/extensions/no-debug-non-zts-20240924/php84_pdo_kdb.so || true
+RUN ln -s /opt/kdbclient/libkci.so.5 /usr/local/lib/php/extensions/no-debug-non-zts-20240924/libkci.so.5 || true
 # 编译 pecl pdo_kdb 如果可用
-RUN if pecl install pdo_kdb; then docker-php-ext-enable pdo_kdb; fi || true
 # httpd 配置：允许 .htaccess 等
 RUN sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
-RUN echo "extension=pdo_mysql" > /usr/local/etc/php/conf.d/30-pdo_mysql.ini
-RUN echo "extension=pdo_pgsql" > /usr/local/etc/php/conf.d/30-pdo_pgsql.ini
-RUN echo "extension=pdo_dm" > /usr/local/etc/php/conf.d/30-pdo_dm.ini
-RUN echo "extension=pdo_kdb" > /usr/local/etc/php/conf.d/30-pdo_kdb.ini
+#RUN echo "extension=pdo_mysql" > /usr/local/etc/php/conf.d/30-pdo_mysql.ini
+#RUN echo "extension=pdo_pgsql" > /usr/local/etc/php/conf.d/30-pdo_pgsql.ini
+RUN echo "extension=php84_pdo_dm.so" > /usr/local/etc/php/conf.d/30-pdo_dm.ini
+RUN echo "extension=libphp84_pdo_dm.so" > /usr/local/etc/php/conf.d/30-pdo_dm.ini
+RUN echo "extension=php84_pdo_kdb.so" > /usr/local/etc/php/conf.d/30-pdo_kdb.ini
 
 # Copy application files
 COPY . /var/www/html/
