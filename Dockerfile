@@ -45,7 +45,10 @@ RUN if [ -d /opt/oracle/instantclient ] || [ -d /opt/oracle/instantclient_21_21 
 # 如果没有正式 driver，注释以下两行
 COPY dmclient /opt/dmclient
 RUN ln -s /opt/dmclient/php84_pdo_dm.so /usr/local/lib/php/extensions/no-debug-non-zts-20240924/php84_pdo_dm.so || true
-RUN ln -s /opt/dmclient/libphp84_pdo_dm.so /usr/local/lib/php/extensions/no-debug-non-zts-20240924/libphp84_pdo_dm.so || true
+RUN ln -s /opt/dmclient/libphp84_dm.so /usr/local/lib/php/extensions/no-debug-non-zts-20240924/libphp84_dm.so || true
+ENV DM_HOME=/opt/dmclient/dm8
+ENV PATH=$PATH:$DM_HOME/bin
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DM_HOME/bin
 # 编译 pecl pdo_dm 如果可用
 COPY kdbclient /opt/kdbclient
 RUN ln -s /opt/kdbclient/pdo_kdb.so /usr/local/lib/php/extensions/no-debug-non-zts-20240924/php84_pdo_kdb.so || true
@@ -56,7 +59,7 @@ RUN sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 #RUN echo "extension=pdo_mysql" > /usr/local/etc/php/conf.d/30-pdo_mysql.ini
 #RUN echo "extension=pdo_pgsql" > /usr/local/etc/php/conf.d/30-pdo_pgsql.ini
 RUN echo "extension=php84_pdo_dm.so" > /usr/local/etc/php/conf.d/30-pdo_dm.ini
-RUN echo "extension=libphp84_pdo_dm.so" > /usr/local/etc/php/conf.d/30-pdo_dm.ini
+RUN echo "extension=libphp84_dm.so" > /usr/local/etc/php/conf.d/30-dm.ini
 RUN echo "extension=php84_pdo_kdb.so" > /usr/local/etc/php/conf.d/30-pdo_kdb.ini
 
 # Copy application files
