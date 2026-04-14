@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(printf '\\\\n--- docs ---\\\\n')",
+      "Bash(go mod:*)",
+      "Bash(go build:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(go run:*)",
+      "Bash(curl -sS http://127.0.0.1:8080/healthz)",
+      "Bash(printf '\\\\n---\\\\n')",
+      "Bash(curl -sS http://127.0.0.1:8080/api/orgs)",
+      "Bash(curl -sS http://127.0.0.1:8080/api/users)",
+      "Bash(curl -sS http://127.0.0.1:8080/api/tasks)",
+      "Bash(curl:*)"
+    ]
+  }
+}
